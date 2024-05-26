@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CurrieTechnologies.Razor.SweetAlert2" Version="5.6.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.26.1" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.62.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.63.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.16" PrivateAssets="all" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="Protos\proveedor.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\categoria.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\material.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\tipoUsuario.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\rolEmpleado.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\usuario.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\personal.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\prestamos.proto" GrpcServices="Client" />
+	</ItemGroup>
+
+</Project>

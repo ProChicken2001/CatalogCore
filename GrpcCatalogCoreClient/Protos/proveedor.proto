@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreClient.Protos";
+
+package proveedor;
+
+service ProveedorServ{
+	rpc getProveedores (EmptyProveedorRequest) returns (ProveedoresReply);
+	rpc getProveedor (ProveedorRequest) returns (ProveedorReply);
+	rpc insertProveedor (ProveedorRequest) returns (ProveedorReply);
+	rpc updateProveedor (ProveedorRequest) returns (ProveedorReply); 
+	rpc deleteProveedor (ProveedorRequest) returns (ProveedorReply); 
+}
+
+message ProveedorRequest{
+	int32 ProveedorId = 1;
+	Proveedores registro = 2;
+}
+
+message ProveedoresReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Proveedores lista = 3;
+}
+
+message ProveedorReply{
+	bool resultado = 1;
+	string message = 2;
+	Proveedores registro = 3;
+}
+
+message Proveedores{
+	int32 ProveedorId = 1;
+	string Nombre = 2;
+	string TipoMaterial = 3;
+	string Direccion = 4;
+	string Telefono = 5;
+	string CorreoElectronico = 6;
+}
+
+message EmptyProveedorRequest {}

@@ -1,0 +1,179 @@
+﻿@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+@inject RolEmpleadoServ.RolEmpleadoServClient rolService;
+@inject PersonalServ.PersonalServClient personalService;
+
+@page "/modificarEmpleado/{empleadoId:int}"
+
+<div class="center">
+
+    <div class="contenedorMain">
+
+        <EditForm Model="empleadoView" OnValidSubmit="agregar">
+
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Actualizando</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <InputText class="form-control" type="text" @bind-Value="empleadoView.NombreCompleto" />
+                        <ValidationMessage For="@(() => empleadoView.NombreCompleto)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rol de empleado</label>
+                        <InputSelect @bind-Value="empleadoView.RolId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un tipo de usuario</option>
+                            @foreach (var item in listaRol.Lista)
+                            {
+                                <option value="@item.RolId">@item.Descripcion</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => empleadoView.RolId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de inscripcion</label>
+                        <InputDate class="form-control" TValue="DateTime" @bind-Value="empleadoView.FechaContratacion"></InputDate>
+                        <ValidationMessage For="@(() => empleadoView.FechaContratacion)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Salario</label>
+                        <InputNumber class="form-control" type="text" @bind-Value="empleadoView.Salario" />
+                        <ValidationMessage For="@(() => empleadoView.Salario)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Horario Trabajo</label>
+                        <InputText class="form-control" type="text" @bind-Value="empleadoView.HorarioTrabajo" />
+                        <ValidationMessage For="@(() => empleadoView.HorarioTrabajo)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contacto de emergencia</label>
+                        <InputText class="form-control" type="text" @bind-Value="empleadoView.ContactoEmergencia" />
+                        <ValidationMessage For="@(() => empleadoView.ContactoEmergencia)" />
+                    </div>
+
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-success">Modificar</button>
+                <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+            </div>
+
+        </EditForm>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public int empleadoId { get; set; }
+
+    FormEmpleadoView empleadoView = new FormEmpleadoView();
+    RolEmpleadosReply listaRol = new RolEmpleadosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await personalService.getEmpleadoAsync(new EmpleadoRequest() { EmpleadoId = empleadoId });
+
+            if (r!.Resultado)
+            {
+                empleadoView = new FormEmpleadoView()
+                    {
+                        NombreCompleto = r.Registro.NombreCompleto,
+                        RolId = r.Registro.RolId,
+                        FechaContratacion = r.Registro.FechaContratacion.ToDateTime(),
+                        Salario = r.Registro.Salario,
+                        HorarioTrabajo = r.Registro.HorarioTrabajo,
+                        ContactoEmergencia = r.Registro.ContactoEmergencia
+                    };
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "No pudimos reconocer el usuario! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+
+            listaRol = await rolService.getRolEmpleadosAsync(new EmptyRolEmpleadoRequest());
+
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/personal");
+    }
+
+    private async Task agregar()
+    {
+        try
+        {
+            Empleados empleadoModificado = new Empleados()
+                {
+                    NombreCompleto = empleadoView.NombreCompleto,
+                    RolId = empleadoView.RolId,
+                    FechaContratacion = Timestamp.FromDateTime(empleadoView.FechaContratacion.ToUniversalTime()),
+                    Salario = empleadoView.Salario,
+                    HorarioTrabajo = empleadoView.HorarioTrabajo,
+                    ContactoEmergencia = empleadoView.ContactoEmergencia
+                };
+
+            var r = await personalService.updateEmpleadoAsync(new EmpleadoRequest()
+                {
+                    EmpleadoId = empleadoId,
+                    Registro = empleadoModificado
+                });
+
+            if (r!.Resultado)
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "¡Agregado!",
+                        Text = "El empleado se actualizo correctamente! :)",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "El empleado no se pudo actualizar! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+        }
+        catch (Exception)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un problema a la hora de actualizar! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}

@@ -1,0 +1,165 @@
+﻿@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+@inject ProveedorServ.ProveedorServClient proveedorService;
+
+@page "/modificarProveedor/{proveedorId:int}"
+
+<div class="center">
+
+    <div class="contenedorMain">
+
+        <EditForm Model="proveedorView" OnValidSubmit="agregar">
+
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Agregando</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <InputText class="form-control" type="text" @bind-Value="proveedorView.Nombre" />
+                        <ValidationMessage For="@(() => proveedorView.Nombre)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electronico</label>
+                        <InputText class="form-control" type="text" @bind-Value="proveedorView.TipoMaterial" />
+                        <ValidationMessage For="@(() => proveedorView.TipoMaterial)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Direccion</label>
+                        <InputText class="form-control" type="text" @bind-Value="proveedorView.Direccion" />
+                        <ValidationMessage For="@(() => proveedorView.Direccion)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefono</label>
+                        <InputText class="form-control" type="text" @bind-Value="proveedorView.Telefono" />
+                        <ValidationMessage For="@(() => proveedorView.Telefono)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electronico</label>
+                        <InputText class="form-control" type="text" @bind-Value="proveedorView.CorreoElectronico" />
+                        <ValidationMessage For="@(() => proveedorView.CorreoElectronico)" />
+                    </div>
+
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-success">Agregar</button>
+                <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+            </div>
+
+        </EditForm>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public int proveedorId { get; set; }
+
+
+    FormProveedorView proveedorView = new FormProveedorView();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await proveedorService.getProveedorAsync(new ProveedorRequest() { ProveedorId = proveedorId });
+
+            if (r!.Resultado)
+            {
+                proveedorView = new FormProveedorView()
+                    {
+                        Nombre = r.Registro.Nombre,
+                        TipoMaterial = r.Registro.TipoMaterial,
+                        Direccion = r.Registro.Direccion,
+                        Telefono = r.Registro.Telefono,
+                        CorreoElectronico = r.Registro.CorreoElectronico,
+                    };
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "No pudimos reconocer el proveedor! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+
+        }
+        catch (Exception)
+        {
+            
+        }
+    }
+
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/proveedor");
+    }
+
+    private async Task agregar()
+    {
+        try
+        {
+            Proveedores nuevoproveedor = new Proveedores()
+                {
+                    Nombre = proveedorView.Nombre,
+                    TipoMaterial = proveedorView.TipoMaterial,
+                    Direccion = proveedorView.Direccion,
+                    Telefono = proveedorView.Telefono,
+                    CorreoElectronico = proveedorView.CorreoElectronico,
+                };
+
+            var r = await proveedorService.updateProveedorAsync(new ProveedorRequest()
+                {
+                    ProveedorId = proveedorId,
+                    Registro = nuevoproveedor
+                });
+
+            Console.WriteLine(r.Message);
+
+            if (r!.Resultado)
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "¡Modificado!",
+                        Text = "El proveedor se modifico correctamente! :)",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "El proveedor no se pudo agregar! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+        }
+        catch (Exception)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un problema a la hora de agregar! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}
+

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreServer.Protos";
+
+import "google/protobuf/timestamp.proto";
+
+package usuario;
+
+service UsuariosServ{
+	rpc getUsuarios (EmptyUsuarioRequest) returns (UsuariosReply);
+	rpc getUsuario (UsuarioRequest) returns (UsuarioReply);
+	rpc insertUsuario (UsuarioRequest) returns (UsuarioReply);
+	rpc updateUsuario (UsuarioRequest) returns (UsuarioReply); 
+	rpc deleteUsuario (UsuarioRequest) returns (UsuarioReply); 
+}
+
+message UsuarioRequest{
+	int32 UsuarioId = 1;
+	Usuarios registro = 2;
+}
+
+message UsuariosReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Usuarios lista = 3;
+}
+
+message UsuarioReply{
+	bool resultado = 1;
+	string message = 2;
+	Usuarios registro = 3;
+}
+
+message Usuarios{
+	int32 UsuarioId = 1;
+	string NombreCompleto = 2;
+	int32 TipoUsuarioId = 3;
+	string TipoUsuario = 4;
+	string Direccion = 5;
+	string Telefono = 6;
+	string CorreoElectronico = 7;
+	google.protobuf.Timestamp FechaInscripcion = 8;
+	string AccesibilidadNecesaria = 9;
+}
+
+
+message EmptyUsuarioRequest {}

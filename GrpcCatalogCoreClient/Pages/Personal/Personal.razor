@@ -1,0 +1,152 @@
+﻿@inject PersonalServ.PersonalServClient personalService;
+@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+
+@page "/personal"
+
+@if (lista.Lista.Count() > 0)
+{
+    <div class="mb-3">
+        <button @onclick="agregarEmpleado" type="button" class="btn btn-primary">Agregar Empleado</button>
+        <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th align="center" scope="col">Nombre</th>
+                <th align="center" scope="col">Rol</th>
+                <th align="center" scope="col">Fecha de contratacion</th>
+                <th align="center" scope="col">Salario</th>
+                <th align="center" scope="col">Horario de trabajo</th>
+                <th align="center" scope="col">Contacto de emergencia</th>
+                <th align="center" scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista.Lista)
+            {
+                <tr>
+                    <th scope="row">@item.EmpleadoId</th>
+                    <td align="center">@item.NombreCompleto</td>
+                    <td align="center">@item.Rol</td>
+                    <td align="center">@item.FechaContratacion.ToDateTime()</td>
+                    <td align="center">@item.Salario</td>
+                    <td align="center">@item.HorarioTrabajo</td>
+                    <td align="center">@item.ContactoEmergencia</td>
+                    <td align="center">
+                        <button @onclick="@(() => modificarEmpleado(item.EmpleadoId))" type="button" class="btn btn-success">Modificar</button>
+                        <button @onclick="@(() => eliminarEmpleado(item.EmpleadoId))" type="button" class="btn btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="mb-3">
+        <button @onclick="agregarEmpleado" type="button" class="btn btn-primary">Agregar Empleado</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td align="center" colspan="4">No se encontraron empleados</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    EmpleadosReply lista = new EmpleadosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await personalService.getEmpleadosAsync(new EmptyEmpleadosRequest());
+
+            if (r!.Resultado)
+            {
+                lista.Lista.AddRange(r.Lista);
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/");
+    }
+
+    private void agregarEmpleado()
+    {
+        var url = $"/agregarEmpleado";
+
+        navigation.NavigateTo(url);
+    }
+
+    private void modificarEmpleado(int empleadoId)
+    {
+        var url = $"/modificarEmpleado/{empleadoId}";
+
+        navigation.NavigateTo(url);
+    }
+
+    private async Task eliminarEmpleado(int empleadoId)
+    {
+        var re = await personalService.deleteEmpleadoAsync(new EmpleadoRequest()
+            {
+                EmpleadoId = empleadoId
+            });
+
+        if (re!.Resultado)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "¡Eliminado!",
+                    Text = "El empleado se elimino con exito! :)",
+                    Icon = "success",
+                    ConfirmButtonText = "Aceptar"
+                });
+
+            navigation.NavigateTo($"/personal", true);
+        }
+        else
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un error, no pudimos eliminar el empleado! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+}

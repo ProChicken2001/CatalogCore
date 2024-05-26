@@ -1,0 +1,187 @@
+﻿@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+@inject UsuariosServ.UsuariosServClient usuarioService;
+@inject TipoUsuarioServ.TipoUsuarioServClient tipoUsuariosService;
+
+@page "/modificarUsuario/{usuarioId:int}"
+
+<div class="center">
+
+    <div class="contenedorMain">
+
+        <EditForm Model="usuarioView" OnValidSubmit="modificar">
+
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Actualizando</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <InputText class="form-control" type="text" @bind-Value="usuarioView.NombreCompleto" />
+                        <ValidationMessage For="@(() => usuarioView.NombreCompleto)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de usuario</label>
+                        <InputSelect @bind-Value="usuarioView.TipoUsuarioId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un tipo de usuario</option>
+                            @foreach (var item in listaTipoUsuarios.Lista)
+                            {
+                                <option value="@item.TipoUsuarioId">@item.Descripcion</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => usuarioView.TipoUsuarioId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Direccion</label>
+                        <InputText class="form-control" type="text" @bind-Value="usuarioView.Direccion" />
+                        <ValidationMessage For="@(() => usuarioView.Direccion)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Telefono</label>
+                        <InputText class="form-control" type="text" @bind-Value="usuarioView.Telefono" />
+                        <ValidationMessage For="@(() => usuarioView.Telefono)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electronico</label>
+                        <InputText class="form-control" type="text" @bind-Value="usuarioView.CorreoElectronico" />
+                        <ValidationMessage For="@(() => usuarioView.CorreoElectronico)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de inscripcion</label>
+                        <InputDate class="form-control" TValue="DateTime" @bind-Value="usuarioView.FechaInscripcion"></InputDate>
+                        <ValidationMessage For="@(() => usuarioView.FechaInscripcion)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripcion</label>
+                        <InputText class="form-control" type="text" @bind-Value="usuarioView.AccesibilidadNecesaria" />
+                        <ValidationMessage For="@(() => usuarioView.AccesibilidadNecesaria)" />
+                    </div>
+
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-success">Modificar</button>
+                <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+            </div>
+
+        </EditForm>
+    </div>
+
+</div>
+
+@code {
+
+    [Parameter]
+    public int usuarioId { get; set; }
+
+    FormUsuarioView usuarioView = new FormUsuarioView();
+    TipoUsuariosReply listaTipoUsuarios = new TipoUsuariosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            listaTipoUsuarios = await tipoUsuariosService.getTipoUsuariosAsync(new EmptyTipoUsuarioRequest());
+
+            var r = await usuarioService.getUsuarioAsync(new UsuarioRequest() { UsuarioId = usuarioId });
+
+            if (r!.Resultado)
+            {
+                usuarioView = new FormUsuarioView()
+                    {
+                        NombreCompleto = r.Registro.NombreCompleto,
+                        TipoUsuarioId = r.Registro.TipoUsuarioId,
+                        Direccion = r.Registro.Direccion,
+                        Telefono = r.Registro.Telefono,
+                        CorreoElectronico = r.Registro.CorreoElectronico,
+                        FechaInscripcion = r.Registro.FechaInscripcion.ToDateTime(),
+                        AccesibilidadNecesaria = r.Registro.AccesibilidadNecesaria
+                    };
+
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "No pudimos reconocer el usuario! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/usuario");
+    }
+
+    private async Task modificar()
+    {
+        try
+        {
+            Usuarios usuarioModificado = new Usuarios()
+                {
+                    NombreCompleto = usuarioView.NombreCompleto,
+                    TipoUsuarioId = usuarioView.TipoUsuarioId,
+                    Direccion = usuarioView.Direccion,
+                    Telefono = usuarioView.Telefono,
+                    CorreoElectronico = usuarioView.CorreoElectronico,
+                    FechaInscripcion = Timestamp.FromDateTime(usuarioView.FechaInscripcion.ToUniversalTime()),
+                    AccesibilidadNecesaria = usuarioView.AccesibilidadNecesaria
+                };
+
+            var r = await usuarioService.updateUsuarioAsync(new UsuarioRequest()
+                {
+                    UsuarioId = usuarioId,
+                    Registro = usuarioModificado
+                });
+
+            if (r!.Resultado)
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "¡Modificado!",
+                        Text = "El usuario se modifico correctamente! :)",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                regresar();
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "El usuario no se pudo modificar! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+        }
+        catch (Exception)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un problema a la hora de modificar! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}

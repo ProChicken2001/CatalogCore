@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreServer.Protos";
+
+package tipoUsuario;
+
+service TipoUsuarioServ{
+	rpc getTipoUsuarios (EmptyTipoUsuarioRequest) returns (TipoUsuariosReply);
+}
+
+message TipoUsuariosReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated TipoUsuarios lista = 3;
+}
+
+message TipoUsuarios{
+	int32 TipoUsuarioId = 1;
+	string Descripcion = 2;
+}
+
+message EmptyTipoUsuarioRequest {}

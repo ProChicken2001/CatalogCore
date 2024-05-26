@@ -1,0 +1,174 @@
+﻿@inject NavigationManager navigation;
+@inject MaterialesServ.MaterialesServClient service;
+@inject SweetAlertService sweetAlertService;
+@inject UsuariosServ.UsuariosServClient usuarioService;
+
+@page "/"
+
+@if(lista.Lista.Count() > 0)
+{
+    <div class="mb-3">
+        <button @onclick="agregarMaterial" type="button" class="btn btn-primary">Agregar Material</button>
+        <button @onclick="verProveedores" type="button" class="btn btn-primary">Ver Proveedores</button>
+        <button @onclick="verPrestamos" type="button" class="btn btn-primary">Ver Prestamos</button>
+        <button @onclick="verUsuarios" type="button" class="btn btn-primary">Ver Usuarios</button>
+        <button @onclick="verPersonal" type="button" class="btn btn-primary">Ver Empleados</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th align="center" scope="col">Titulo</th>
+                <th align="center" scope="col">Categoria</th>
+                <th align="center" scope="col">Proveedor</th>
+                <th align="center" scope="col">Editorial</th>
+                <th align="center" scope="col">Año de publicacion</th>
+                <th align="center" scope="col">Edicion</th>
+                <th align="center" scope="col">Descripcion</th>
+                <th align="center" scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista.Lista)
+            {
+                <tr>
+                    <th scope="row">@item.MaterialId</th>
+                    <td align="center">@item.Titulo</td>
+                    <td align="center">@item.Categoria</td>
+                    <td align="center">@item.Proveedor</td>
+                    <td align="center">@item.Editorial</td>
+                    <td align="center">@item.AnoPublicacion</td>
+                    <td align="center">@item.Edicion</td>
+                    <td align="center">@item.Descripcion</td>
+                    <td align="center">
+                        <button @onclick="@(() => modificarMaterial(item.MaterialId))" type="button" class="btn btn-success">Modificar</button>
+                        <button @onclick="@(() => eliminarMaterial(item.MaterialId))" type="button" class="btn btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="mb-3">
+        <button @onclick="agregarMaterial" type="button" class="btn btn-primary">Agregar Material</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Desarrolladora</th>
+                <th scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td align="center" colspan="4">No se encontraron materiales</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code{
+    MaterialesReply lista = new MaterialesReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await service.getMaterialesAsync(new EmptyMaterialRequest());
+
+            if (r!.Resultado)
+            {
+                lista.Lista.AddRange(r.Lista);
+            }
+        }
+        catch (Exception)
+        {
+            
+        }
+    }
+
+    private void agregarMaterial()
+    {
+        var url = $"/agregarMaterial";
+
+        navigation.NavigateTo(url);
+    }
+
+    private void verProveedores()
+    {
+        navigation.NavigateTo("/proveedor");
+    }
+
+    private void verPrestamos()
+    {
+        navigation.NavigateTo("/prestamo");
+    }
+
+    private void verUsuarios()
+    {
+        navigation.NavigateTo("/usuario");
+    }
+
+    private void verPersonal()
+    {
+        navigation.NavigateTo("/personal");
+    }
+
+    private void modificarMaterial(int materialId)
+    {
+        var url = $"/modificarMaterial/{materialId}";
+
+        navigation.NavigateTo(url);
+    }
+
+    private async Task eliminarMaterial(int materialId)
+    {
+        var re = await service.deleteMaterialAsync(new MaterialRequest
+            {
+                MaterialId = materialId
+            });
+
+        if (re!.Resultado)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "¡Eliminado!",
+                    Text = "El Material se elimino con exito! :)",
+                    Icon = "success",
+                    ConfirmButtonText = "Aceptar"
+                });
+
+            navigation.NavigateTo(navigation.BaseUri, true);
+        }
+        else
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un error, no pudimos eliminar el material! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}

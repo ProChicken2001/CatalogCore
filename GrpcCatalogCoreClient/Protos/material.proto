@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreClient.Protos";
+
+package material;
+
+service MaterialesServ{
+	rpc getMateriales (EmptyMaterialRequest) returns (MaterialesReply);
+	rpc getMaterial (MaterialRequest) returns (MaterialReply);
+	rpc insertMaterial (MaterialRequest) returns (MaterialReply);
+	rpc updateMaterial (MaterialRequest) returns (MaterialReply); 
+	rpc deleteMaterial (MaterialRequest) returns (MaterialReply); 
+}
+
+message MaterialRequest{
+	int32 MaterialId = 1;
+	Materiales registro = 2;
+}
+
+message MaterialesReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Materiales lista = 3;
+}
+
+message MaterialReply{
+	bool resultado = 1;
+	string message = 2;
+	Materiales registro = 3;
+}
+
+message Materiales{
+	int32 MaterialId = 1;
+	string Titulo = 2;
+	int32 CategoriaId = 3;
+	int32 ProveedorId = 4;
+	string Categoria = 5;
+	string Proveedor = 6;
+	string Editorial = 7;
+	string ISBN = 8;
+	int32 AnoPublicacion = 9;
+	string Edicion = 10;
+	string Descripcion = 11;
+	string UbicacionFisica = 12;
+	string Estado = 13;
+}
+
+
+message EmptyMaterialRequest {}

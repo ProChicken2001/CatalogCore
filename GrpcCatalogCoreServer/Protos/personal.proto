@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreServer.Protos";
+
+import "google/protobuf/timestamp.proto";
+
+package personal;
+
+service PersonalServ{
+	rpc getEmpleados (EmptyEmpleadosRequest) returns (EmpleadosReply);
+	rpc getEmpleado (EmpleadoRequest) returns (EmpleadoReply);
+	rpc insertEmpleado (EmpleadoRequest) returns (EmpleadoReply);
+	rpc updateEmpleado (EmpleadoRequest) returns (EmpleadoReply); 
+	rpc deleteEmpleado (EmpleadoRequest) returns (EmpleadoReply); 
+}
+
+message EmpleadoRequest{
+	int32 EmpleadoId = 1;
+	Empleados registro = 2;
+}
+
+message EmpleadosReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Empleados lista = 3;
+}
+
+message EmpleadoReply{
+	bool resultado = 1;
+	string message = 2;
+	Empleados registro = 3;
+}
+
+message Empleados{
+	int32 EmpleadoId = 1;
+	string NombreCompleto = 2;
+	int32 RolId = 3;
+	string Rol = 4;
+	google.protobuf.Timestamp FechaContratacion = 5;
+	double Salario = 6;
+	string HorarioTrabajo = 7;
+	string ContactoEmergencia = 8;
+}
+
+
+message EmptyEmpleadosRequest {}

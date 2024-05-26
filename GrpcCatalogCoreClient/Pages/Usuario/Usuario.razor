@@ -1,0 +1,154 @@
+﻿@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+@inject UsuariosServ.UsuariosServClient usuarioService;
+
+@page "/usuario"
+
+@if (lista.Lista.Count() > 0)
+{
+    <div class="mb-3">
+        <button @onclick="agregarUsuario" type="button" class="btn btn-primary">Agregar Usuario</button>
+        <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th align="center" scope="col">Nombre</th>
+                <th align="center" scope="col">Tipo</th>
+                <th align="center" scope="col">Direccion</th>
+                <th align="center" scope="col">Telefono</th>
+                <th align="center" scope="col">Correo</th>
+                <th align="center" scope="col">Fecha de inscripcion</th>
+                <th align="center" scope="col">Accesibilidad</th>
+                <th align="center" scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista.Lista)
+            {
+                <tr>
+                    <th scope="row">@item.UsuarioId</th>
+                    <td align="center">@item.NombreCompleto</td>
+                    <td align="center">@item.TipoUsuario</td>
+                    <td align="center">@item.Direccion</td>
+                    <td align="center">@item.Telefono</td>
+                    <td align="center">@item.CorreoElectronico</td>
+                    <td align="center">@item.FechaInscripcion.ToDateTime()</td>
+                    <td align="center">@item.AccesibilidadNecesaria</td>
+                    <td align="center">
+                        <button @onclick="@(() => modificarUsuario(item.UsuarioId))" type="button" class="btn btn-success">Modificar</button>
+                        <button @onclick="@(() => eliminarUsuario(item.UsuarioId))" type="button" class="btn btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="mb-3">
+        <button @onclick="agregarUsuario" type="button" class="btn btn-primary">Agregar Usuario</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td align="center" colspan="4">No se encontraron usuarios</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+}
+@code {
+    UsuariosReply lista = new UsuariosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await usuarioService.getUsuariosAsync(new EmptyUsuarioRequest());
+
+            if (r!.Resultado)
+            {
+                lista.Lista.AddRange(r.Lista);
+            }
+        }
+        catch (Exception)
+        {
+            
+        }
+    }
+
+    private void agregarUsuario()
+    {
+        var url = $"/agregarUsuario";
+
+        navigation.NavigateTo(url);
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/");
+    }
+
+    private void modificarUsuario(int usuarioId)
+    {
+        var url = $"/modificarUsuario/{usuarioId}";
+
+        navigation.NavigateTo(url);
+    }
+
+    private async Task eliminarUsuario(int usuarioId)
+    {
+        var re = await usuarioService.deleteUsuarioAsync(new UsuarioRequest
+            {
+                UsuarioId = usuarioId
+            });
+
+        if (re!.Resultado)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "¡Eliminado!",
+                    Text = "El usuario se elimino con exito! :)",
+                    Icon = "success",
+                    ConfirmButtonText = "Aceptar"
+                });
+
+            navigation.NavigateTo("/usuario", true);
+        }
+        else
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un error, no pudimos eliminar el usuario! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}

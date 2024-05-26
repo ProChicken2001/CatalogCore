@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreClient.Protos";
+
+package categoria;
+
+service CategoriaServ{
+	rpc getCategorias (EmptyCategoriaRequest) returns (CategoriasReply);
+}
+
+message CategoriasReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Categorias lista = 3;
+}
+
+message Categorias{
+	int32 CategoriaId = 1;
+	string Descripcion = 2;
+}
+
+message EmptyCategoriaRequest {}

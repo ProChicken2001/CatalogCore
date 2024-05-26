@@ -1,0 +1,179 @@
+﻿@inject NavigationManager navigation;
+@inject PrestamosServ.PrestamosServClient prestamoService;
+@inject UsuariosServ.UsuariosServClient usuarioService;
+@inject MaterialesServ.MaterialesServClient materialService;
+@inject PersonalServ.PersonalServClient personalService;
+@inject SweetAlertService sweetAlertService;
+
+@page "/agregarPrestamo"
+
+<div class="center">
+
+    <div class="contenedorMain">
+
+        <EditForm Model="prestamoView" OnValidSubmit="agregar">
+
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Actualizando</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Usuario</label>
+                        <InputSelect @bind-Value="prestamoView.UsuarioId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un usuario</option>
+                            @foreach (var item in listaUsuarios.Lista)
+                            {
+                                <option value="@item.UsuarioId">@item.NombreCompleto</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => prestamoView.UsuarioId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Material</label>
+                        <InputSelect @bind-Value="prestamoView.MaterialId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un material</option>
+                            @foreach (var item in listaMateriales.Lista)
+                            {
+                                <option value="@item.ProveedorId">@item.Titulo</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => prestamoView.MaterialId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Empleado</label>
+                        <InputSelect @bind-Value="prestamoView.EmpleadoId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un empleado</option>
+                            @foreach (var item in listaEmpleados.Lista)
+                            {
+                                <option value="@item.EmpleadoId">@item.NombreCompleto</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => prestamoView.EmpleadoId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de prestamo</label>
+                        <InputDate class="form-control" TValue="DateTime" @bind-Value="prestamoView.FechaPrestamo"></InputDate>
+                        <ValidationMessage For="@(() => prestamoView.FechaPrestamo)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de devolucion esperada</label>
+                        <InputDate class="form-control" TValue="DateTime" @bind-Value="prestamoView.FechaDevolucionEsperada"></InputDate>
+                        <ValidationMessage For="@(() => prestamoView.FechaDevolucionEsperada)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de devolucion final</label>
+                        <InputDate class="form-control" @bind-Value="prestamoView.FechaDevolucionReal"></InputDate>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Penalizacion</label>
+                        <InputNumber class="form-control" @bind-Value="prestamoView.Penalizaciones" />
+                    </div>
+                </div> 
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-success">Agregar</button>
+                <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+            </div>
+
+        </EditForm>
+    </div>
+
+</div>
+
+@code {
+
+    FormPrestamoView prestamoView = new FormPrestamoView();
+    UsuariosReply listaUsuarios = new UsuariosReply();
+    MaterialesReply listaMateriales = new MaterialesReply();
+    EmpleadosReply listaEmpleados = new EmpleadosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaUsuarios = await usuarioService.getUsuariosAsync(new EmptyUsuarioRequest());
+        listaMateriales = await materialService.getMaterialesAsync(new EmptyMaterialRequest());
+        listaEmpleados = await personalService.getEmpleadosAsync(new EmptyEmpleadosRequest());
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/prestamo");
+    }
+
+
+    private async Task agregar()
+    {
+        try
+        {
+            Prestamos nuevoPrestamo;
+
+            if (prestamoView.FechaDevolucionReal.HasValue)
+            {
+                nuevoPrestamo = new Prestamos()
+                    {
+                        UsuarioId = prestamoView.UsuarioId,
+                        MaterialId = prestamoView.MaterialId,
+                        EmpleadoId = prestamoView.EmpleadoId,
+                        FechaPrestamo = Timestamp.FromDateTime(prestamoView.FechaPrestamo.ToUniversalTime()),
+                        FechaDevolucionEsperada = Timestamp.FromDateTime(prestamoView.FechaDevolucionEsperada.ToUniversalTime()),
+                        FechaDevolucionReal = Timestamp.FromDateTime(prestamoView.FechaDevolucionReal.Value.ToUniversalTime()),
+                        Penalizaciones = prestamoView.Penalizaciones
+                    };
+            }
+            else
+            {
+                nuevoPrestamo = new Prestamos()
+                    {
+                        UsuarioId = prestamoView.UsuarioId,
+                        MaterialId = prestamoView.MaterialId,
+                        EmpleadoId = prestamoView.EmpleadoId,
+                        FechaPrestamo = Timestamp.FromDateTime(prestamoView.FechaPrestamo.ToUniversalTime()),
+                        FechaDevolucionEsperada = Timestamp.FromDateTime(prestamoView.FechaDevolucionEsperada.ToUniversalTime()),
+                        FechaDevolucionReal = null,
+                        Penalizaciones = prestamoView.Penalizaciones
+                    };
+            }
+
+            var r = await prestamoService.insertPrestamoAsync(new PrestamoRequest()
+                {
+                    Registro = nuevoPrestamo
+                });
+
+
+            if (r!.Resultado)
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "¡Agregado!",
+                        Text = "El prestamo se agrego correctamente! :)",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                navigation.NavigateTo("/prestamo");
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "El prestamo no se pudo agregar! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un problema a la hora de agregar! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+
+}

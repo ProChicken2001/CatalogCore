@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreClient.Protos";
+
+import "google/protobuf/timestamp.proto";
+
+package prestamos;
+
+service PrestamosServ{
+	rpc getPrestamos (EmptyPrestamosRequest) returns (PrestamosReply);
+	rpc getPrestamo (PrestamoRequest) returns (PrestamoReply);
+	rpc insertPrestamo (PrestamoRequest) returns (PrestamoReply);
+	rpc updatePrestamo (PrestamoRequest) returns (PrestamoReply); 
+	rpc deletePrestamo (PrestamoRequest) returns (PrestamoReply); 
+}
+
+message PrestamoRequest{
+	int32 PrestamoId = 1;
+	Prestamos registro = 2;
+}
+
+message PrestamosReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated Prestamos lista = 3;
+}
+
+message PrestamoReply{
+	bool resultado = 1;
+	string message = 2;
+	Prestamos registro = 3;
+}
+
+message Prestamos{
+	int32 PrestamoId = 1;
+	int32 UsuarioId = 2;
+	string Usuario = 3;
+	int32 MaterialId = 4;
+	string Material = 5;
+	int32 EmpleadoId = 6;
+	string Empleado = 7;
+	google.protobuf.Timestamp FechaPrestamo = 8;
+	google.protobuf.Timestamp FechaDevolucionEsperada = 9;
+	google.protobuf.Timestamp FechaDevolucionReal = 10;
+	double Penalizaciones = 11;
+}
+
+message EmptyPrestamosRequest {}

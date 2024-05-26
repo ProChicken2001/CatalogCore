@@ -1,0 +1,182 @@
+﻿@inject PrestamosServ.PrestamosServClient prestamoService;
+@inject SweetAlertService sweetAlertService;
+@inject NavigationManager navigation;
+
+@page "/prestamo"
+
+@if (lista.Lista.Count() > 0)
+{
+    <div class="mb-3">
+        <button @onclick="agregarPrestamo" type="button" class="btn btn-primary">Agregar Prestamo</button>
+        <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th align="center" scope="col">Usuario</th>
+                <th align="center" scope="col">Material</th>
+                <th align="center" scope="col">Empleado</th>
+                <th align="center" scope="col">Fecha Prestamo</th>
+                <th align="center" scope="col">Fecha Esperada</th>
+                <th align="center" scope="col">Fecha Real</th>
+                <th align="center" scope="col">Penalizaciones</th>
+                <th align="center" scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in lista.Lista)
+            {
+                <tr>
+                    <th scope="row">@item.PrestamoId</th>
+                    <td align="center">@item.Usuario</td>
+                    <td align="center">@item.Material</td>
+                    <td align="center">@item.Empleado</td>
+
+                    @if(item.FechaPrestamo != null)
+                    {
+                        <td align="center">@item.FechaPrestamo.ToDateTime()</td>
+                    }
+                    else
+                    {
+                        <td align="center"></td>
+                    }
+
+                    @if (item.FechaDevolucionEsperada != null)
+                    {
+                        <td align="center">@item.FechaDevolucionEsperada.ToDateTime()</td>
+                    }else{
+                        <td align="center"></td>
+                    }
+
+                    @if (item.FechaDevolucionReal != null)
+                    {
+                        <td align="center">@item.FechaDevolucionReal.ToDateTime()</td>
+                    }
+                    else{
+                        <td align="center"></td>
+                    }
+
+                    <td align="center">@Convert.ToDecimal(item.Penalizaciones)</td>
+                    <td align="center">
+                        <button @onclick="@(() => modificarPrestamo(item.PrestamoId))" type="button" class="btn btn-success">Modificar</button>
+                        <button @onclick="@(() => eliminarPrestamo(item.PrestamoId))" type="button" class="btn btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="mb-3">
+        <button @onclick="agregarPrestamo" type="button" class="btn btn-primary">Agregar Prestamo</button>
+        <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Desarrolladora</th>
+                <th scope="col">Opciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td align="center" colspan="4">No se encontraron prestamos</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    PrestamosReply lista = new PrestamosReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var r = await prestamoService.getPrestamosAsync(new EmptyPrestamosRequest());
+
+            if (r!.Resultado)
+            {
+                lista.Lista.AddRange(r.Lista);
+            }
+            else
+            {
+                Console.WriteLine(r.Message);
+            }
+
+        }
+        catch(Exception)
+        {
+            
+        }
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/");
+    }
+
+    private void agregarPrestamo()
+    {
+        var url = $"/agregarPrestamo";
+
+        navigation.NavigateTo(url);
+    }
+
+    private void modificarPrestamo(int prestamoId)
+    {
+        var url = $"/modificarPrestamo/{prestamoId}";
+
+        navigation.NavigateTo(url);
+    }
+
+    private async Task eliminarPrestamo(int prestamoId)
+    {
+        var re = await prestamoService.deletePrestamoAsync(new PrestamoRequest
+            {
+                PrestamoId = prestamoId
+            });
+
+        if (re!.Resultado)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "¡Eliminado!",
+                    Text = "El Prestamo se elimino con exito! :)",
+                    Icon = "success",
+                    ConfirmButtonText = "Aceptar"
+                });
+
+            navigation.NavigateTo($"/prestamo", true);
+        }
+        else
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un error, no pudimos eliminar el prestamo! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+}

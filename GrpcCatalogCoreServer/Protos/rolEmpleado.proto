@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCatalogCoreServer.Protos";
+
+package rolEmpleado;
+
+service RolEmpleadoServ{
+	rpc getRolEmpleados (EmptyRolEmpleadoRequest) returns (RolEmpleadosReply);
+}
+
+message RolEmpleadosReply{
+	bool resultado = 1;
+	string message = 2;
+	repeated RolEmpleados lista = 3;
+}
+
+message RolEmpleados{
+	int32 RolId = 1;
+	string Descripcion = 2;
+}
+
+message EmptyRolEmpleadoRequest {}

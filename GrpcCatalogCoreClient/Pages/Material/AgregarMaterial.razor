@@ -1,0 +1,178 @@
+﻿@inject NavigationManager navigation
+@inject SweetAlertService sweetAlertService;
+@inject CategoriaServ.CategoriaServClient categoriaService;
+@inject ProveedorServ.ProveedorServClient proveedorService;
+@inject MaterialesServ.MaterialesServClient materialService;
+@page "/agregarMaterial"
+
+<div class="center">
+
+    <div class="contenedorMain">
+
+        <EditForm Model="materialView" OnValidSubmit="agregar">
+
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="card text-dark bg-light mb-3">
+                <div class="card-header">Actualizando</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Titulo</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.Titulo"/>
+                        <ValidationMessage For="@(() => materialView.Titulo)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoria</label>
+                        <InputSelect @bind-Value="materialView.CategoriaId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione una categoria</option>
+                            @foreach (var item in listaCategorias.Lista)
+                            {
+                                <option value="@item.CategoriaId">@item.Descripcion</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => materialView.CategoriaId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor</label>
+                        <InputSelect @bind-Value="materialView.ProveedorId" class="form-select" aria-label="Default select example">
+                            <option value="0" selected>Seleccione un proveedor</option>
+                            @foreach (var item in listaProveedores.Lista)
+                            {
+                                <option value="@item.ProveedorId">@item.Nombre</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => materialView.ProveedorId)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Editorial</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.Editorial" />
+                        <ValidationMessage For="@(() => materialView.Editorial)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ISBN</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.ISBN" />
+                        <ValidationMessage For="@(() => materialView.ISBN)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Año de publicacion</label>
+                        <InputNumber class="form-control" type="text" @bind-Value="materialView.AnoPublicacion" />
+                        <ValidationMessage For="@(() => materialView.AnoPublicacion)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Edicion</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.Edicion" />
+                        <ValidationMessage For="@(() => materialView.Edicion)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripcion</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.Descripcion" />
+                        <ValidationMessage For="@(() => materialView.Descripcion)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ubicacion fisica</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.UbicacionFisica" />
+                        <ValidationMessage For="@(() => materialView.UbicacionFisica)" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <InputText class="form-control" type="text" @bind-Value="materialView.Estado" />
+                        <ValidationMessage For="@(() => materialView.Estado)" />
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-success">Agregar</button>
+                <button @onclick="regresar" type="button" class="btn btn-primary">Regresar</button>
+            </div>
+
+        </EditForm>        
+    </div>
+
+</div>
+
+@code {
+    FormMaterialView materialView = new FormMaterialView();
+    CategoriasReply listaCategorias = new CategoriasReply();
+    ProveedoresReply listaProveedores = new ProveedoresReply();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            listaCategorias = await categoriaService.getCategoriasAsync(new EmptyCategoriaRequest());
+            listaProveedores = await proveedorService.getProveedoresAsync(new EmptyProveedorRequest());
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void regresar()
+    {
+        navigation.NavigateTo("/");
+    }
+
+    private async Task agregar()
+    {
+        try
+        {
+            Materiales nuevoMaterial = new Materiales()
+                {
+                    Titulo = materialView.Titulo,
+                    CategoriaId = materialView.CategoriaId,
+                    ProveedorId = materialView.ProveedorId,
+                    Editorial = materialView.Editorial,
+                    ISBN = materialView.ISBN,
+                    AnoPublicacion = materialView.AnoPublicacion,
+                    Edicion = materialView.Edicion,
+                    Descripcion = materialView.Descripcion,
+                    UbicacionFisica = materialView.UbicacionFisica,
+                    Estado = materialView.Estado
+                };
+
+            var r = await materialService.insertMaterialAsync(new MaterialRequest()
+            {
+                Registro = nuevoMaterial
+            });
+
+            if (r!.Resultado)
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "¡Agregado!",
+                        Text = "El material se agrego correctamente! :)",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+
+                navigation.NavigateTo("/");
+            }
+            else
+            {
+                await sweetAlertService.FireAsync(new SweetAlertOptions()
+                    {
+                        Title = "Ups...",
+                        Text = "El material no se pudo agregar! :(",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+        }
+        catch (Exception)
+        {
+            await sweetAlertService.FireAsync(new SweetAlertOptions()
+                {
+                    Title = "Ups...",
+                    Text = "Ocurrio un problema a la hora de agregar! :(",
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
+    }
+}
